@@ -64,7 +64,7 @@ The save doesn't record these in a way the tool can read:
 
 ## 🚀 How to use it
 
-1. **Get your save.** On a modded 3DS, back up New Leaf with [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) or JKSV, then copy `garden_plus.dat` from the backup folder on your SD card.
+1. **Get your save.** On a modded 3DS, back up New Leaf with [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) or JKSV, then copy `garden_plus.dat` from the backup folder on your SD card. There is a good tutorial for doing this [here](https://www.marcrobledo.com/acnl-editor/help.html#Howto).
 2. **Open the tool** and choose **Open garden_plus.dat**. Pick a player if your town has more than one.
 3. *(Optional)* **Planner for AC: NL:** export a backup from the app, choose **Open Planner backup**, check the summary, then **Download updated backup**.
 4. **Restore** the downloaded file in the app.
