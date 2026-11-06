@@ -8,7 +8,7 @@ Read your Animal Crossing: New Leaf save in your browser to see your full catalo
 
 **See everything in your Animal Crossing: New Leaf catalog, and send it straight to Planner for AC: NL.**
 
-[**▶ Open the tool**](https://YOUR-USERNAME.github.io/acnl-catalog-extractor/)
+[**▶ Open the tool**](https://cant-press.github.io/acnl-catalog-extractor/)
 
 ![Runs in your browser](https://img.shields.io/badge/runs_in-your_browser-0f7f6d)
 ![Nothing uploaded](https://img.shields.io/badge/save_files-never_uploaded-0f7f6d)
