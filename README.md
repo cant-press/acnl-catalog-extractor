@@ -113,6 +113,7 @@ Please [open an issue](../../issues) with the item name and the list it's in.
 
 ## 🙏 Credits
 
+- **[Planner for AC: NL](https://csvensson.app/planner-acnl/)** by C Svensson Apps: the companion app this tool exports to. Go and get it if you don't have it! This tool isn't made by or affiliated with its developer.
 - **[ACNL Save Editor](https://github.com/marcrobledo/acnl-editor)** by Marc Robledo: item names, IDs and save layout (MIT licence)
 - **[Nookipedia](https://nookipedia.com)**: distributed and unobtainable item lists, RV sellers, badge and emotion names
 - **[ACNL_ID_Lists](https://github.com/RedShyGuy/ACNL_ID_Lists)** by RedShyGuy: emotion IDs
