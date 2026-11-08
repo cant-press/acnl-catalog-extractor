@@ -70,6 +70,26 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .report .added { color: var(--accent); font-weight: 600; }
 .profile-pick { color: var(--muted); font-size: .86rem; display: inline-flex; gap: 7px; align-items: center; }
 
+.showcase { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.showcase-top { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.showcase-top .file-btn { flex: none; }
+.showcase-text { flex: 1 1 260px; min-width: 0; }
+.showcase-text h2 { margin-bottom: 2px; }
+.showcase-text p { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.showcase .error { padding: 0 16px 12px; margin: 0; }
+.sc-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.sc-tools input[type="search"] { flex: 1 1 170px; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); }
+.sc-tools label { color: var(--muted); font-size: .86rem; display: inline-flex; gap: 6px; align-items: center; }
+.sc-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline; padding: 7px 14px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); content-visibility: auto; contain-intrinsic-size: auto 52px; }
+.sc-row.have .dot { background: var(--accent); border-color: var(--accent); }
+.sc-row:not(.have) .name { color: var(--fg); }
+.sc-row .houses { grid-column: 2 / -1; color: var(--muted); font-size: .84rem; overflow-wrap: anywhere; }
+.sc-row .tags { display: inline-flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.chip { font-size: .72rem; font-weight: 600; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.rare { color: var(--gold); border-color: var(--gold); }
+.chip.miss { color: var(--accent); border-color: var(--accent); }
+
+
 .main { display: grid; grid-template-columns: 262px minmax(0, 1fr); gap: 18px; align-items: start; }
 .rail { display: grid; gap: 14px; }
 .rail h2 { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-family: var(--body); font-weight: 600; margin-bottom: 4px; }
@@ -125,7 +145,7 @@ label.names { color: var(--muted); font-size: .86rem; display: inline-flex; gap:
   <header>
     <div>
       <h1>ACNL Catalog Extractor</h1>
-      <p class="lede">Open a Welcome amiibo save to list what each player has in their catalog, see what is missing, export it, or copy it all into a Planner for AC: NL backup.</p>
+      <p class="lede">Open a Welcome amiibo save to list what each player has in their catalog, see what is missing, export it, copy it into a Planner for AC: NL backup, or check what you could order from the Happy Home Showcase.</p>
     </div>
     <label class="names" for="nameset">Item names
       <select id="nameset">
@@ -189,6 +209,38 @@ label.names { color: var(--muted); font-size: .86rem; display: inline-flex; gap:
       <div class="rows" id="rows"></div>
     </section>
   </div>
+
+  <section class="showcase" aria-label="Happy Home Showcase">
+    <div class="showcase-top">
+      <input type="file" id="showcaseFile" accept=".dat">
+      <label class="file-btn" for="showcaseFile">Open exhibition.dat</label>
+      <div class="showcase-text">
+        <h2>Happy Home Showcase</h2>
+        <p id="showcaseMsg">Open exhibition.dat from the same backup as your save to see what's on display in the showcase houses, compared with your catalog.</p>
+      </div>
+    </div>
+    <p class="error" id="showcaseError" role="alert" hidden></p>
+    <div id="showcaseBody" hidden>
+      <div class="sc-tools">
+        <input type="search" id="scQ" placeholder="Search showcase items" aria-label="Search showcase items">
+        <div class="seg" role="group" aria-label="Show showcase items">
+          <button type="button" data-sf="missing">Not in catalog</button>
+          <button type="button" data-sf="rare">Rare</button>
+          <button type="button" data-sf="all">All</button>
+        </div>
+        <label for="scOther"><input type="checkbox" id="scOther"> Include non-furniture on display</label>
+      </div>
+      <div class="status">
+        <strong id="scSummary"></strong>
+        <div class="actions">
+          <span id="scActionMsg" role="status"></span>
+          <button type="button" id="scCopy">Copy list</button>
+        </div>
+      </div>
+      <p class="cat-note">You can order up to 5 items a day from showcase houses. Some items, such as the mermaid set and the turkey, can't be ordered, and the save doesn't say which, so check in the game.</p>
+      <div class="rows" id="scRows"></div>
+    </div>
+  </section>
 
   <section class="notes">
     <div>
@@ -406,7 +458,7 @@ async function saveFile(filename, text) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
-const state = { backup: null, backupName: "", profile: 0, museum: {}, town: { villagers: [], pwp: [] }, downloads: null, players: [{ name: DATA.sampleName, field: hexBytes(DATA.sample) }], example: true, fileName: "", player: 0, cat: "catalog", filter: "have", q: "", names: "uk" };
+const state = { showcase: null, scFilter: "missing", scQ: "", scOther: false, backup: null, backupName: "", profile: 0, museum: {}, town: { villagers: [], pwp: [] }, downloads: null, players: [{ name: DATA.sampleName, field: hexBytes(DATA.sample) }], example: true, fileName: "", player: 0, cat: "catalog", filter: "have", q: "", names: "uk" };
 const catalogCats = DATA.cats.filter(c => c.section === "Catalog");
 const itemName = it => (state.names === "uk" && it[2]) || it[1];
 const player = () => state.players[state.player];
@@ -489,6 +541,7 @@ function render() {
   $("catNote").textContent = blurb || ""; $("catNote").hidden = !blurb;
   renderRows(rows);
   renderPlanner();
+  renderShowcase();
 }
 function renderPlanner() {
   const msg = $("plannerMsg"), wrap = $("reportWrap"), btn = $("saveBackup"), err = $("plannerError");
@@ -520,7 +573,101 @@ function renderPlanner() {
   if (!canSave()) msg.textContent += " Saving files isn't available in this view. Export this page as HTML and open that file instead.";
 }
 
+/* Happy Home Showcase (exhibition.dat): 48 house slots after a header. Each slot holds a house laid out
+   like the player's own: 6 rooms of 0x302 bytes, each with a 10x10 floor grid, an 8x8 tabletop layer,
+   then wallpaper and flooring. The owner's name and town sit at +0x1288. */
+const SHOWCASE = { size: 1555984, slots: 48, slot: 0x7dd8, rooms: 0x82, room: 0x302, owner: 0x1288 };
+const ORDER_CATS = new Set(["Furniture", "Wallpaper", "Flooring", "Fossil models"]);
+const showcaseIndex = new Map();
+for (const c of DATA.cats) for (const it of c.items) {
+  const cur = showcaseIndex.get(it[0]) || { it, cat: c.section === "Rare items" ? null : c.label, rare: null };
+  if (c.section === "Rare items") cur.rare = cur.rare || (c.status || DATA.rare[it[0]] || "Distribution ended");
+  else if (!cur.cat) cur.cat = c.label;
+  showcaseIndex.set(it[0], cur);
+}
+for (const it of DATA.pics) if (!showcaseIndex.has(it[0])) showcaseIndex.set(it[0], { it, cat: "Photos", rare: null });
+function parseShowcase(buf) {
+  if (buf.byteLength !== SHOWCASE.size) throw new Error("This doesn't look like exhibition.dat. Expected 1,555,984 bytes, but this file is " + buf.byteLength.toLocaleString("en-GB") + " bytes.");
+  const bytes = new Uint8Array(buf), view = new DataView(buf), dec = new TextDecoder("utf-16le");
+  const head = buf.byteLength - SHOWCASE.slots * SHOWCASE.slot, found = new Map();
+  let houses = 0;
+  const text = o => dec.decode(bytes.subarray(o, o + 18)).split("\0")[0].trim();
+  for (let s = 0; s < SHOWCASE.slots; s++) {
+    const b = head + s * SHOWCASE.slot, ids = new Set();
+    if (bytes.subarray(b, b + 8).every(x => x === 0)) continue; /* empty slot: leftovers from a removed house */
+    for (let r = 0; r < 6; r++) {
+      const o = b + SHOWCASE.rooms + SHOWCASE.room * r;
+      for (let k = 0; k < 164; k++) ids.add(view.getUint16(o + 4 * k, true));
+      ids.add(view.getUint16(o + 656, true)); ids.add(view.getUint16(o + 660, true));
+    }
+    const known = [...ids].filter(id => showcaseIndex.has(id));
+    if (!known.length) continue;
+    houses++;
+    const owner = text(b + SHOWCASE.owner), town = text(b + SHOWCASE.owner + 0x16);
+    const label = owner ? owner + (town ? " (" + town + ")" : "") : "Unnamed house";
+    for (const id of known) (found.get(id) || found.set(id, new Set()).get(id)).add(label);
+  }
+  if (!houses) throw new Error("No showcase houses were found in this file.");
+  return { houses, found };
+}
+function showcaseRows() {
+  const sc = state.showcase, q = state.scQ.trim().toLowerCase(), f = player().field, out = [];
+  for (const [id, where] of sc.found) {
+    const info = showcaseIndex.get(id), orderable = ORDER_CATS.has(info.cat);
+    if (!orderable && !state.scOther) continue;
+    const owned = has(f, id), name = itemName(info.it);
+    if (state.scFilter === "missing" && owned) continue;
+    if (state.scFilter === "rare" && !info.rare) continue;
+    if (q && !name.toLowerCase().includes(q)) continue;
+    out.push({ id, name, cat: info.cat || "Other", rare: info.rare, owned, houses: [...where].sort() });
+  }
+  return out.sort((a, b) => (!!b.rare - !!a.rare) || a.owned - b.owned || a.name.localeCompare(b.name));
+}
+function renderShowcase() {
+  const sc = state.showcase;
+  $("showcaseBody").hidden = !sc;
+  if (!sc) return;
+  const rows = showcaseRows(), missing = rows.filter(r => !r.owned).length;
+  $("showcaseMsg").textContent = sc.houses + " houses in " + sc.fileName + ", compared with " + player().name + "'s catalog" + (state.example ? " (example data: open your own save above)." : ".");
+  document.querySelectorAll("[data-sf]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sf === state.scFilter)));
+  $("scSummary").textContent = rows.length.toLocaleString("en-GB") + (rows.length === 1 ? " item" : " items") + (state.scFilter === "all" ? ", " + missing.toLocaleString("en-GB") + " not in catalog" : "");
+  $("scCopy").disabled = !rows.length; $("scActionMsg").textContent = "";
+  const frag = document.createDocumentFragment();
+  for (const r of rows) {
+    const row = document.createElement("div"); row.className = "sc-row" + (r.owned ? " have" : "");
+    const dot = document.createElement("span"); dot.className = "dot"; dot.title = r.owned ? "In catalog" : "Not in catalog";
+    const name = document.createElement("span"); name.className = "name"; name.textContent = r.name;
+    const tags = document.createElement("span"); tags.className = "tags";
+    const add = (text, cls) => { const c = document.createElement("span"); c.className = "chip" + (cls ? " " + cls : ""); c.textContent = text; tags.append(c); };
+    if (r.rare) add(r.rare, "rare");
+    if (!r.owned) add("Not in catalog", "miss");
+    add(r.cat);
+    const houses = document.createElement("span"); houses.className = "houses"; houses.textContent = "In " + r.houses.join(", ");
+    row.append(dot, name, tags, houses); frag.append(row);
+  }
+  $("scRows").replaceChildren(frag); $("scRows").scrollTop = 0;
+  if (!rows.length) { const e = document.createElement("p"); e.className = "empty"; e.textContent = state.scQ ? "No showcase items match that search." : "Nothing here."; $("scRows").append(e); }
+}
+async function openShowcase(file) {
+  $("showcaseError").hidden = true;
+  try {
+    const sc = parseShowcase(await file.arrayBuffer());
+    state.showcase = Object.assign(sc, { fileName: file.name });
+    renderShowcase();
+  } catch (err) { $("showcaseError").textContent = err.message; $("showcaseError").hidden = false; }
+}
+$("showcaseFile").addEventListener("change", e => { if (e.target.files[0]) openShowcase(e.target.files[0]); e.target.value = ""; });
+$("scQ").addEventListener("input", e => { state.scQ = e.target.value; renderShowcase(); });
+$("scOther").addEventListener("change", e => { state.scOther = e.target.checked; renderShowcase(); });
+document.querySelectorAll("[data-sf]").forEach(b => b.addEventListener("click", () => { state.scFilter = b.dataset.sf; renderShowcase(); }));
+$("scCopy").addEventListener("click", async () => {
+  const text = showcaseRows().map(r => r.name + " - " + r.houses.join(", ")).join("\n");
+  try { await navigator.clipboard.writeText(text); $("scActionMsg").textContent = "Copied"; }
+  catch { $("scActionMsg").textContent = "Copying isn't available here"; }
+});
+
 async function openFile(file) {
+  if (file.size === SHOWCASE.size) return openShowcase(file);
   $("error").hidden = true;
   try {
     const buf = await file.arrayBuffer();

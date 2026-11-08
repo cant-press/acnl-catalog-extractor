@@ -1,7 +1,3 @@
-# acnl-catalog-extractor
-Read your Animal Crossing: New Leaf save in your browser to see your full catalog, what’s missing and what can no longer be obtained, then export it to a Planner for AC: NL backup.
-
-
 <div align="center">
 
 # 🍃 ACNL Catalog Extractor
@@ -28,8 +24,16 @@ Open your `garden_plus.dat` and the page reads each player's catalog straight fr
 - 📖 **Browse your whole catalog** by category: furniture, wallpaper, flooring, clothing, songs, gyroids, fossils, stationery and more
 - 🔍 **Find what's missing**, with search and "In catalog / Missing / All" filters
 - 💎 **Check rare items**: distributed (SpotPass and Nintendo Zone), Club Tortimer, and Japan-only RV items, with where the obtainable ones can still be bought
+- 🏠 **Search the Happy Home Showcase**: see everything on display in your showcase houses, who owns each house, and what you could order that isn't in your catalog yet
 - 📋 **Copy or export** any list as a CSV
 - 🗓️ **Fill in Planner for AC: NL**: update a backup from the app so it ticks everything your save shows
+
+## 🏠 Happy Home Showcase
+
+Open `exhibition.dat`, which sits next to `garden_plus.dat` in your backup, and the tool lists every piece of furniture, wallpaper and flooring on display in your showcase houses. Each item shows which houses have it, whether it's already in your catalog, and whether it's one of the rare items above, so you can spot distributed items like the zodiac furniture that you can still order from a showcase house.
+
+> [!NOTE]
+> You can order up to 5 items a day from the showcase. Some items can't be ordered at all, such as the mermaid set and the turkey, and the save doesn't record which ones, so check in the game.
 
 ## 🗓️ Exporting to Planner for AC: NL
 
@@ -64,17 +68,18 @@ The save doesn't record these in a way the tool can read:
 
 ## 🚀 How to use it
 
-1. **Get your save.** On a modded 3DS, back up New Leaf with [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) or JKSV, then copy `garden_plus.dat` from the backup folder on your SD card. There is a good tutorial for doing this [here](https://www.marcrobledo.com/acnl-editor/help.html#Howto).
+1. **Get your save.** On a modded 3DS, back up New Leaf with [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) or JKSV, then copy `garden_plus.dat` from the backup folder on your SD card.
 2. **Open the tool** and choose **Open garden_plus.dat**. Pick a player if your town has more than one.
-3. *(Optional)* **Planner for AC: NL:** export a backup from the app, choose **Open Planner backup**, check the summary, then **Download updated backup**.
-4. **Restore** the downloaded file in the app.
+3. *(Optional)* **Happy Home Showcase:** choose **Open exhibition.dat** from the same backup folder.
+4. *(Optional)* **Planner for AC: NL:** export a backup from the app, choose **Open Planner backup**, check the summary, then **Download updated backup**.
+5. **Restore** the downloaded file in the app.
 
 > [!IMPORTANT]
 > Keep your original Planner backup somewhere safe before restoring, so you can go back if anything looks wrong.
 
 ## 🔒 Privacy
 
-Everything happens in your browser. Your save and backup files are **never uploaded**, and your save is **never modified**. The tool only reads it.
+Everything happens in your browser. Your save, showcase and backup files are **never uploaded**, and your save is **never modified**. The tool only reads it.
 
 ## ❓ FAQ
 
@@ -97,6 +102,12 @@ If the catalog was ever filled with a save editor, the save marks every item as 
 </details>
 
 <details>
+<summary><b>Where do the showcase houses come from?</b></summary>
+
+They're the houses the game has saved from StreetPass and the Happy Home Network. Some are placeholder houses named "Someone (Anytown)". Empty showcase slots are skipped.
+</details>
+
+<details>
 <summary><b>Something isn't ticked that should be</b></summary>
 
 Please [open an issue](../../issues) with the item name and the list it's in.
@@ -113,11 +124,11 @@ Please [open an issue](../../issues) with the item name and the list it's in.
 
 ## 🙏 Credits
 
-- **[Planner for AC: NL](https://csvensson.app/planner-acnl/)** by C Svensson Apps: the companion app this tool exports to. Go and get it if you don't have it! This tool isn't made by or affiliated with its developer.
 - **[ACNL Save Editor](https://github.com/marcrobledo/acnl-editor)** by Marc Robledo: item names, IDs and save layout (MIT licence)
 - **[Nookipedia](https://nookipedia.com)**: distributed and unobtainable item lists, RV sellers, badge and emotion names
 - **[ACNL_ID_Lists](https://github.com/RedShyGuy/ACNL_ID_Lists)** by RedShyGuy: emotion IDs
 - **[Vapecord ACNL Plugin](https://github.com/RedShyGuy/Vapecord-ACNL-Plugin)**: item category ranges and the catalog bitfield layout
+- **[Planner for AC: NL](https://csvensson.app/planner-acnl/)** by C Svensson Apps: the companion app this tool exports to. Go and get it if you don't have it! This tool isn't made by or affiliated with its developer.
 
 ---
 
