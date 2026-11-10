@@ -53,7 +53,7 @@ Open your save, then a backup exported from the app. The page shows what it will
 | Museum donations | ✅ The town museum |
 | Villagers | ✅ Current residents |
 | Emotions and badges | ✅ The player you choose |
-| Public Works Projects | ✅ Projects standing in town now |
+| Public Works Projects | ✅ Projects unlocked in town |
 | House exterior | ⚠️ Current exterior only |
 
 Every name the tool writes was checked against a full export from the app, so items show up ticked rather than silently skipped.
