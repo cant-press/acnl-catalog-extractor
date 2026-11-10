@@ -24,16 +24,21 @@ Open your `garden_plus.dat` and the page reads each player's catalog straight fr
 - 📖 **Browse your whole catalog** by category: furniture, wallpaper, flooring, clothing, songs, gyroids, fossils, stationery and more
 - 🔍 **Find what's missing**, with search and "In catalog / Missing / All" filters
 - 💎 **Check rare items**: distributed (SpotPass and Nintendo Zone), Club Tortimer, and Japan-only RV items, with where the obtainable ones can still be bought
-- 🏠 **Search the Happy Home Showcase**: see everything on display in your showcase houses, who owns each house, and what you could order that isn't in your catalog yet
+- 🏠 **Search the Happy Home Showcase**: see what you could order from your showcase houses that isn't in your catalog yet, and which houses are worth keeping
 - 📋 **Copy or export** any list as a CSV
 - 🗓️ **Fill in Planner for AC: NL**: update a backup from the app so it ticks everything your save shows
 
 ## 🏠 Happy Home Showcase
 
-Open `exhibition.dat`, which sits next to `garden_plus.dat` in your backup, and the tool lists every piece of furniture, wallpaper and flooring on display in your showcase houses. Each item shows which houses have it, whether it's already in your catalog, and whether it's one of the rare items above, so you can spot distributed items like the zodiac furniture that you can still order from a showcase house.
+Open `exhibition.dat`, which sits next to `garden_plus.dat` in your backup, and the tool lists every piece of furniture, wallpaper and flooring on display in your showcase houses. There are two views:
+
+- **By item:** each item shows which houses have it, whether it's already in your catalog, and whether it's one of the rare items above, so you can spot distributed items like the zodiac furniture that you can still order.
+- **By house:** houses are ranked by how many items you need that can't be found in any other house, so you know which to keep and which you can order from and let go.
+
+Items the game won't let you order, such as the mermaid set, the turkey and the 24-hour-shop items, are hidden by default. Untick the box to show them.
 
 > [!NOTE]
-> You can order up to 5 items a day from the showcase. Some items can't be ordered at all, such as the mermaid set and the turkey, and the save doesn't record which ones, so check in the game.
+> You can order up to 5 items a day from the showcase. "Can go" is worked out against your current showcase, so if you remove several houses, check again with a fresh backup.
 
 ## 🗓️ Exporting to Planner for AC: NL
 
@@ -128,6 +133,7 @@ Please [open an issue](../../issues) with the item name and the list it's in.
 - **[Nookipedia](https://nookipedia.com)**: distributed and unobtainable item lists, RV sellers, badge and emotion names
 - **[ACNL_ID_Lists](https://github.com/RedShyGuy/ACNL_ID_Lists)** by RedShyGuy: emotion IDs
 - **[Vapecord ACNL Plugin](https://github.com/RedShyGuy/Vapecord-ACNL-Plugin)**: item category ranges and the catalog bitfield layout
+- **[Data Spreadsheet for Animal Crossing: New Leaf](https://docs.google.com/spreadsheets/d/1pMPl6_5c2C5HQK3pMdRbGH2FU7ZOpthrHrkluY9PoLg)** by the spreadsheet team: which items can be ordered
 - **[Planner for AC: NL](https://csvensson.app/planner-acnl/)** by C Svensson Apps: the companion app this tool exports to. Go and get it if you don't have it! This tool isn't made by or affiliated with its developer.
 
 ---
