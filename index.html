@@ -242,8 +242,13 @@ label.names { color: var(--muted); font-size: .86rem; display: inline-flex; gap:
           <button type="button" data-sf="rare">Rare</button>
           <button type="button" data-sf="all">All</button>
         </div>
+        <div class="seg" role="group" aria-label="Sort houses" id="scSortSeg" hidden>
+          <button type="button" data-ss="only">Sort: only here</button>
+          <button type="button" data-ss="need">Sort: items you need</button>
+        </div>
         <label for="scHideNoOrder"><input type="checkbox" id="scHideNoOrder" checked> Hide items that can't be ordered</label>
         <label for="scOther"><input type="checkbox" id="scOther"> Include non-furniture on display</label>
+        <label for="scAnon" id="anonWrap" hidden><input type="checkbox" id="scAnon"> Show anonymous houses (Someone of Anytown)</label>
       </div>
       <div class="status">
         <strong id="scSummary"></strong>
@@ -253,7 +258,7 @@ label.names { color: var(--muted); font-size: .86rem; display: inline-flex; gap:
         </div>
       </div>
       <p class="cat-note">You can order up to 5 items a day from showcase houses. Items the game won't let you order, such as the mermaid set and the turkey, are hidden unless you untick the box. That list comes from the Data Spreadsheet for Animal Crossing: New Leaf.</p>
-      <p class="cat-note" id="scHouseNote" hidden>Houses are ranked by how many of the items you need are found only in that house. "Can go" means everything you need from it is also in another house, so you can order from it and let it go. If you remove several houses, check again, because an item in two houses you remove would be lost.</p>
+      <p class="cat-note" id="scHouseNote" hidden>"Only here" ranks houses by how many items you need can't be found in any other house. "Items you need" ranks them by how many orderable items they have that aren't in your catalog. "Can go" means everything you need from it is also in another house, so you can order from it and let it go. If you remove several houses, check again, because an item in two houses you remove would be lost.</p>
       <div class="rows" id="scRows"></div>
     </div>
   </section>
@@ -479,7 +484,7 @@ async function saveFile(filename, text) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
-const state = { showcase: null, scHideNoOrder: true, scView: "items", scFilter: "missing", scQ: "", scOther: false, backup: null, backupName: "", profile: 0, museum: {}, town: { villagers: [], pwp: [] }, downloads: null, players: [{ name: DATA.sampleName, field: hexBytes(DATA.sample) }], example: true, fileName: "", player: 0, cat: "catalog", filter: "have", q: "", names: "uk" };
+const state = { showcase: null, scAnon: false, scSort: "only", scHideNoOrder: true, scView: "items", scFilter: "missing", scQ: "", scOther: false, backup: null, backupName: "", profile: 0, museum: {}, town: { villagers: [], pwp: [] }, downloads: null, players: [{ name: DATA.sampleName, field: hexBytes(DATA.sample) }], example: true, fileName: "", player: 0, cat: "catalog", filter: "have", q: "", names: "uk" };
 const catalogCats = DATA.cats.filter(c => c.section === "Catalog");
 const itemName = it => (state.names === "uk" && it[2]) || it[1];
 const player = () => state.players[state.player];
@@ -610,7 +615,7 @@ for (const it of DATA.pics) if (!showcaseIndex.has(it[0])) showcaseIndex.set(it[
 function parseShowcase(buf) {
   if (buf.byteLength !== SHOWCASE.size) throw new Error("This doesn't look like exhibition.dat. Expected 1,555,984 bytes, but this file is " + buf.byteLength.toLocaleString("en-GB") + " bytes.");
   const bytes = new Uint8Array(buf), view = new DataView(buf), dec = new TextDecoder("utf-16le");
-  const head = buf.byteLength - SHOWCASE.slots * SHOWCASE.slot, found = new Map(), list = [];
+  const head = buf.byteLength - SHOWCASE.slots * SHOWCASE.slot, list = [];
   const text = o => dec.decode(bytes.subarray(o, o + 18)).split("\0")[0].trim();
   for (let s = 0; s < SHOWCASE.slots; s++) {
     const b = head + s * SHOWCASE.slot, ids = new Set();
@@ -623,21 +628,28 @@ function parseShowcase(buf) {
     const known = [...ids].filter(id => showcaseIndex.has(id));
     if (!known.length) continue;
     const owner = text(b + SHOWCASE.owner), town = text(b + SHOWCASE.owner + 0x16);
-    list.push({ label: owner ? owner + (town ? " (" + town + ")" : "") : "Unnamed house", ids: known });
+    const anon = view.getUint16(b + SHOWCASE.owner - 2, true) === 0xffff;
+    list.push({ label: owner ? owner + (town ? " (" + town + ")" : "") : "Unnamed house", ids: known, anon });
   }
   if (!list.length) throw new Error("No showcase houses were found in this file.");
   const seen = {}, total = {};
   for (const hs of list) total[hs.label] = (total[hs.label] || 0) + 1;
   for (const hs of list) if (total[hs.label] > 1) hs.label += " " + (seen[hs.label] = (seen[hs.label] || 0) + 1);
-  for (const hs of list) for (const id of hs.ids) (found.get(id) || found.set(id, new Set()).get(id)).add(hs.label);
-  return { houses: list.length, list, found };
+  return { list };
+}
+/* Houses currently counted, and which of them hold each item. */
+const scHouses = () => state.showcase.list.filter(hs => state.scAnon || !hs.anon);
+function scFound() {
+  const found = new Map();
+  for (const hs of scHouses()) for (const id of hs.ids) (found.get(id) || found.set(id, new Set()).get(id)).add(hs.label);
+  return found;
 }
 /* Items the game won't let you order, from the Data Spreadsheet for Animal Crossing: New Leaf ("Reorderable: No"). */
 const NO_ORDER = new Set(DATA.noOrder);
 const showItem = id => (state.scOther || ORDER_CATS.has(showcaseIndex.get(id).cat)) && !(state.scHideNoOrder && NO_ORDER.has(id));
 function showcaseRows() {
   const sc = state.showcase, q = state.scQ.trim().toLowerCase(), f = player().field, out = [];
-  for (const [id, where] of sc.found) {
+  for (const [id, where] of scFound()) {
     const info = showcaseIndex.get(id);
     if (!showItem(id)) continue;
     const owned = has(f, id), name = itemName(info.it);
@@ -649,17 +661,18 @@ function showcaseRows() {
   return out.sort((a, b) => (!!b.rare - !!a.rare) || a.owned - b.owned || a.name.localeCompare(b.name));
 }
 function houseStats() {
-  const sc = state.showcase, q = state.scQ.trim().toLowerCase(), f = player().field, out = [];
-  for (const hs of sc.list) {
+  const q = state.scQ.trim().toLowerCase(), f = player().field, out = [], found = scFound();
+  for (const hs of scHouses()) {
     const ids = hs.ids.filter(showItem);
     const need = ids.filter(id => !has(f, id)).map(id => {
       const info = showcaseIndex.get(id);
-      return { id, name: itemName(info.it), rare: info.rare, noOrder: NO_ORDER.has(id), only: sc.found.get(id).size === 1 };
+      return { id, name: itemName(info.it), rare: info.rare, noOrder: NO_ORDER.has(id), only: found.get(id).size === 1 };
     }).sort((a, b) => b.only - a.only || !!b.rare - !!a.rare || a.name.localeCompare(b.name));
     if (q && !hs.label.toLowerCase().includes(q) && !need.some(n => n.name.toLowerCase().includes(q))) continue;
     out.push({ label: hs.label, total: ids.length, need, only: need.filter(n => n.only).length, rare: need.filter(n => n.rare).length });
   }
-  return out.sort((a, b) => b.only - a.only || b.need.length - a.need.length || a.label.localeCompare(b.label));
+  const byNeed = state.scSort === "need";
+  return out.sort((a, b) => (byNeed ? b.need.length - a.need.length || b.only - a.only : b.only - a.only || b.need.length - a.need.length) || a.label.localeCompare(b.label));
 }
 function renderHouses() {
   const rows = houseStats(), keep = rows.filter(r => r.only).length;
@@ -702,11 +715,14 @@ function renderShowcase() {
   const sc = state.showcase;
   $("showcaseBody").hidden = !sc;
   if (!sc) return;
-  $("showcaseMsg").textContent = sc.houses + " houses in " + sc.fileName + ", compared with " + player().name + "'s catalog" + (state.example ? " (example data: open your own save above)." : ".");
+  const anon = sc.list.filter(hs => hs.anon).length, shown = scHouses().length;
+  $("anonWrap").hidden = !anon;
+  $("showcaseMsg").textContent = shown + " houses in " + sc.fileName + (anon && !state.scAnon ? " (" + anon + " anonymous hidden)" : "") + ", compared with " + player().name + "'s catalog" + (state.example ? " (example data: open your own save above)." : ".");
   document.querySelectorAll("[data-sf]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sf === state.scFilter)));
   document.querySelectorAll("[data-sv]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sv === state.scView)));
   const byHouse = state.scView === "houses";
-  $("scFilters").hidden = byHouse; $("scHouseNote").hidden = !byHouse;
+  $("scFilters").hidden = byHouse; $("scHouseNote").hidden = !byHouse; $("scSortSeg").hidden = !byHouse;
+  document.querySelectorAll("[data-ss]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ss === state.scSort)));
   $("scQ").placeholder = byHouse ? "Search houses or items" : "Search showcase items";
   $("scActionMsg").textContent = "";
   if (byHouse) return renderHouses();
@@ -742,6 +758,8 @@ $("showcaseFile").addEventListener("change", e => { if (e.target.files[0]) openS
 $("scQ").addEventListener("input", e => { state.scQ = e.target.value; renderShowcase(); });
 $("scOther").addEventListener("change", e => { state.scOther = e.target.checked; renderShowcase(); });
 $("scHideNoOrder").addEventListener("change", e => { state.scHideNoOrder = e.target.checked; renderShowcase(); });
+$("scAnon").addEventListener("change", e => { state.scAnon = e.target.checked; renderShowcase(); });
+document.querySelectorAll("[data-ss]").forEach(b => b.addEventListener("click", () => { state.scSort = b.dataset.ss; renderShowcase(); }));
 document.querySelectorAll("[data-sf]").forEach(b => b.addEventListener("click", () => { state.scFilter = b.dataset.sf; renderShowcase(); }));
 document.querySelectorAll("[data-sv]").forEach(b => b.addEventListener("click", () => { state.scView = b.dataset.sv; renderShowcase(); }));
 $("scCopy").addEventListener("click", async () => {
