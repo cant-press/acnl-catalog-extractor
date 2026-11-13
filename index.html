@@ -248,7 +248,6 @@ label.names { color: var(--muted); font-size: .86rem; display: inline-flex; gap:
         </div>
         <label for="scHideNoOrder"><input type="checkbox" id="scHideNoOrder" checked> Hide items that can't be ordered</label>
         <label for="scOther"><input type="checkbox" id="scOther"> Include non-furniture on display</label>
-        <label for="scAnon" id="anonWrap" hidden><input type="checkbox" id="scAnon"> Show anonymous houses (Someone of Anytown)</label>
       </div>
       <div class="status">
         <strong id="scSummary"></strong>
@@ -484,7 +483,7 @@ async function saveFile(filename, text) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
-const state = { showcase: null, scAnon: false, scSort: "only", scHideNoOrder: true, scView: "items", scFilter: "missing", scQ: "", scOther: false, backup: null, backupName: "", profile: 0, museum: {}, town: { villagers: [], pwp: [] }, downloads: null, players: [{ name: DATA.sampleName, field: hexBytes(DATA.sample) }], example: true, fileName: "", player: 0, cat: "catalog", filter: "have", q: "", names: "uk" };
+const state = { showcase: null, scSort: "only", scHideNoOrder: true, scView: "items", scFilter: "missing", scQ: "", scOther: false, backup: null, backupName: "", profile: 0, museum: {}, town: { villagers: [], pwp: [] }, downloads: null, players: [{ name: DATA.sampleName, field: hexBytes(DATA.sample) }], example: true, fileName: "", player: 0, cat: "catalog", filter: "have", q: "", names: "uk" };
 const catalogCats = DATA.cats.filter(c => c.section === "Catalog");
 const itemName = it => (state.names === "uk" && it[2]) || it[1];
 const player = () => state.players[state.player];
@@ -601,8 +600,8 @@ function renderPlanner() {
 
 /* Happy Home Showcase (exhibition.dat): 48 house slots after a header. Each slot holds a house laid out
    like the player's own: 6 rooms of 0x302 bytes, each with a 10x10 floor grid, an 8x8 tabletop layer,
-   then wallpaper and flooring. The owner's name and town sit at +0x1288. */
-const SHOWCASE = { size: 1555984, slots: 48, slot: 0x7dd8, rooms: 0x82, room: 0x302, owner: 0x1288 };
+   then wallpaper and flooring. The name and town the game shows sit at +0x67D8. */
+const SHOWCASE = { size: 1555984, slots: 48, slot: 0x7dd8, rooms: 0x82, room: 0x302, owner: 0x67d8 };
 const ORDER_CATS = new Set(["Furniture", "Wallpaper", "Flooring", "Fossil models"]);
 const showcaseIndex = new Map();
 for (const c of DATA.cats) for (const it of c.items) {
@@ -628,8 +627,7 @@ function parseShowcase(buf) {
     const known = [...ids].filter(id => showcaseIndex.has(id));
     if (!known.length) continue;
     const owner = text(b + SHOWCASE.owner), town = text(b + SHOWCASE.owner + 0x16);
-    const anon = view.getUint16(b + SHOWCASE.owner - 2, true) === 0xffff;
-    list.push({ label: owner ? owner + (town ? " (" + town + ")" : "") : "Unnamed house", ids: known, anon });
+    list.push({ label: owner ? owner + (town ? " (" + town + ")" : "") : "Unnamed house", ids: known });
   }
   if (!list.length) throw new Error("No showcase houses were found in this file.");
   const seen = {}, total = {};
@@ -638,7 +636,7 @@ function parseShowcase(buf) {
   return { list };
 }
 /* Houses currently counted, and which of them hold each item. */
-const scHouses = () => state.showcase.list.filter(hs => state.scAnon || !hs.anon);
+const scHouses = () => state.showcase.list;
 function scFound() {
   const found = new Map();
   for (const hs of scHouses()) for (const id of hs.ids) (found.get(id) || found.set(id, new Set()).get(id)).add(hs.label);
@@ -715,9 +713,7 @@ function renderShowcase() {
   const sc = state.showcase;
   $("showcaseBody").hidden = !sc;
   if (!sc) return;
-  const anon = sc.list.filter(hs => hs.anon).length, shown = scHouses().length;
-  $("anonWrap").hidden = !anon;
-  $("showcaseMsg").textContent = shown + " houses in " + sc.fileName + (anon && !state.scAnon ? " (" + anon + " anonymous hidden)" : "") + ", compared with " + player().name + "'s catalog" + (state.example ? " (example data: open your own save above)." : ".");
+  $("showcaseMsg").textContent = scHouses().length + " houses in " + sc.fileName + ", compared with " + player().name + "'s catalog" + (state.example ? " (example data: open your own save above)." : ".");
   document.querySelectorAll("[data-sf]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sf === state.scFilter)));
   document.querySelectorAll("[data-sv]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sv === state.scView)));
   const byHouse = state.scView === "houses";
@@ -758,7 +754,6 @@ $("showcaseFile").addEventListener("change", e => { if (e.target.files[0]) openS
 $("scQ").addEventListener("input", e => { state.scQ = e.target.value; renderShowcase(); });
 $("scOther").addEventListener("change", e => { state.scOther = e.target.checked; renderShowcase(); });
 $("scHideNoOrder").addEventListener("change", e => { state.scHideNoOrder = e.target.checked; renderShowcase(); });
-$("scAnon").addEventListener("change", e => { state.scAnon = e.target.checked; renderShowcase(); });
 document.querySelectorAll("[data-ss]").forEach(b => b.addEventListener("click", () => { state.scSort = b.dataset.ss; renderShowcase(); }));
 document.querySelectorAll("[data-sf]").forEach(b => b.addEventListener("click", () => { state.scFilter = b.dataset.sf; renderShowcase(); }));
 document.querySelectorAll("[data-sv]").forEach(b => b.addEventListener("click", () => { state.scView = b.dataset.sv; renderShowcase(); }));
